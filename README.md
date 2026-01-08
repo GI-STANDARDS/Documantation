@@ -1,62 +1,77 @@
-📚 Library Overview
-Welcome
+# 📚 Library Overview
 
-This library is a public collection of technical projects, experiments, tools, and learning resources related to computing and software development.
+> **Welcome!**
+> This library is a public collection of technical projects, experiments, tools, and learning resources focused on computing and software development.
 
-The purpose of this library is to organize and share practical work, documentation, and tutorials in a single place where users can easily explore, learn, and reuse ideas.
+The goal is to **organize and share practical work, documentation, and tutorials** in a single place where users can easily explore, learn, and reuse ideas.
 
-📦 What You Will Find Here
+---
 
-This library contains:
+## 📦 What You Will Find Here
 
-Project documentation and manuals
+This library includes:
 
-Step-by-step tutorials and usage guides
+* **Project documentation and manuals** – Detailed guides to understand and use projects.
+* **Step-by-step tutorials and usage guides** – Learn by doing, with clear instructions.
+* **Small applications, scripts, and experiments** – Practical examples to try and build upon.
+* **Reference material and explanations** – Key concepts and background info.
+* **Notes on implementation choices and design decisions** – Insight into “why” things are done a certain way.
 
-Small applications, scripts, and experiments
+> All content is **structured and easy to navigate**, making learning and experimentation straightforward.
 
-Reference material and explanations
+---
 
-Notes on implementation choices and design decisions
+## 👤 About the Creator
 
-All materials are provided in a structured and easy-to-navigate format.
+This library is maintained by an **independent developer** with a focus on:
 
-👤 About the Creator
+* Software engineering
+* Automation
+* Applied computer science
 
-This library is maintained by an independent developer with interests in software engineering, automation, and applied computer science.
+> The emphasis is on **learning, experimentation, and sharing knowledge**.
+> Personal details are kept minimal to respect privacy and security.
 
-The focus of this work is on learning, experimentation, and sharing useful knowledge with the wider community. Personal details are intentionally kept minimal to respect privacy and security.
+---
 
-🧭 How to Use This Library
+## 🧭 How to Use This Library
 
-Users can browse the library by topic or project and follow the provided documentation to understand how each tool or example works.
+* Browse by **topic** or **project**.
+* Follow the **provided documentation** to understand each tool or example.
+* Tutorials are **practical and self-contained**, allowing you to learn at your own pace and apply concepts immediately.
 
-Tutorials are written to be practical and self-contained, allowing users to learn at their own pace and apply concepts directly.
+---
 
-🔮 Future Additions
+## 🔮 Future Additions
 
-This library is actively evolving. Future additions may include:
+The library is **actively evolving**. Planned improvements may include:
 
-New tools and utilities
+* New tools and utilities
+* Expanded tutorials and guides
+* Improved documentation and examples
+* Refinements to existing projects
 
-Expanded tutorials and guides
+> Content may be updated, reorganized, or expanded over time to remain relevant and useful.
 
-Improved documentation and examples
+---
 
-Refinements to existing projects
+## 🔐 Security, Responsibility, and Limitations
 
-Content may be updated, reorganized, or expanded over time.
+* All materials are provided for **educational and practical purposes**.
+* Users should **review documentation and source code** before use.
+* Test projects in **safe environments**.
+* The maintainer is **not responsible** for misuse or unintended consequences.
 
-🔐 Security, Responsibility, and Limitations
+---
 
-All content in this library is provided for educational and practical purposes.
+## 📄 Licensing & Usage
 
-Users are encouraged to review documentation and source code before use and to test projects in safe environments. The maintainer is not responsible for misuse, modification, or unintended consequences resulting from the use of the materials provided here.
+* Unless stated otherwise, projects are shared under **open-source or permissive licenses**.
+* Check individual project pages for **specific licensing information** before reuse or redistribution.
 
-📄 Licensing & Usage
+---
 
-Unless stated otherwise, projects in this library are shared under open-source or permissive licenses. Users should check individual project pages for specific licensing information before reuse or redistribution.
+## 🧾 Final Note
 
-🧾 Final Note
-
-This library exists to make technical knowledge more accessible and organized. Contributions, feedback, and improvements are welcome where applicable.
+> This library exists to **make technical knowledge more accessible and organized**.
+> Contributions, feedback, and improvements are welcome where applicable.
