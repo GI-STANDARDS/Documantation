@@ -1,0 +1,21 @@
+Fetch a branch from a remote repo (most common)
+
+If the branch already exists on GitHub but not locally:
+
+Open GitHub Desktop
+
+Open your repository
+
+Click “Fetch origin” (top bar)
+
+This pulls info about all remote branches
+
+Click the Current branch dropdown (top center)
+
+Select the branch you want
+
+If you don’t see it, click “Choose a branch” → “Filter branches”
+
+GitHub Desktop will automatically download (import) that branch and switch to it
+
+✅ That’s it — the branch is now local.
