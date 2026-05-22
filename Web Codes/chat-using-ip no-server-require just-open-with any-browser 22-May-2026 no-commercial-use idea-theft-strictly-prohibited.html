@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatRoom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Message animations */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Typing indicator dots */
+.typing-dots span {
+    animation: typingDot 1.4s infinite;
+    animation-fill-mode: both;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+    0%, 80%, 100% {
+        opacity: 0.3;
+    }
+    40% {
+        opacity: 1;
+    }
+}
+
+/* User card hover effect */
+.user-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    background-color: #374151;}
+
+/* Online status pulse */
+.online-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Mobile tap highlight */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth sidebar scrolling on mobile */
+#sidebar {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area for notched devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+    header {
+        padding-top: env(safe-area-inset-top);
+    }
+    #sidebar {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div id="app" class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-gray-800 border-b border-gray-700 p-3 sm:p-4">
+            <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button id="sidebar-toggle" class="lg:hidden p-2 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="text-base sm:text-xl font-bold truncate">ChatRoom</h1>
+                        <p class="text-xs sm:text-sm text-gray-400 truncate" id="connection-status">Connecting...</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                    <div class="hidden sm:block text-right">
+                        <p class="text-xs text-gray-400">Your ID</p>
+                        <p class="text-sm font-mono text-blue-400 truncate max-w-[120px]" id="user-id">--</p>
+                    </div>
+                    <button id="copy-id-btn" class="bg-gray-700 hover:bg-gray-600 px-2 sm:px-3 py-1 rounded text-xs whitespace-nowrap">Copy ID</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex overflow-hidden relative">
+            <!-- Overlay for mobile sidebar -->
+            <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden transition-opacity" onclick="toggleSidebar()"></div>
+            
+            <!-- Sidebar - Connection Panel -->
+            <aside id="sidebar" class="w-72 lg:w-64 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 fixed lg:relative inset-y-0 left-0 z-30 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+                <div class="p-4 border-b border-gray-700 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-300 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        Connected Peers
+                        <span class="ml-auto bg-blue-600 text-xs px-2 py-1 rounded-full" id="peer-count">0</span>
+                    </h2>
+                    <button id="sidebar-close" class="lg:hidden p-1 hover:bg-gray-700 rounded transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Connect to Peer -->
+                <div class="p-3 sm:p-4 border-b border-gray-700">
+                    <form id="connect-form" class="space-y-2">
+                        <input 
+                            type="text" 
+                            id="peer-id-input" 
+                            placeholder="Enter peer ID..." 
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2.5 sm:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <button 
+                            type="submit" 
+                            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-2.5 sm:py-2 rounded-lg font-semibold text-sm transition-all duration-200"
+                        >
+                            Connect
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-2" id="peers-list">
+                    <!-- Peers will be populated here -->
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="flex-1 flex flex-col min-w-0">
+                <!-- Chat Header -->
+                <div id="chat-header" class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-700 bg-gray-800/50">
+                    <p class="text-gray-400 text-sm sm:text-base">Select a peer to start chatting</p>
+                </div>
+                <!-- Messages -->
+                <div class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4" id="messages">
+                    <div class="text-center text-gray-500 py-6 sm:py-8">
+                        <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <p class="text-sm sm:text-base">Welcome to Chat!</p>
+                        <p class="text-xs sm:text-sm">Start messaging to begin the conversation</p>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="px-4 py-2 text-sm text-gray-400" id="typing-indicator"></div>
+
+                <!-- Message Input -->
+                <div class="p-3 sm:p-4 border-t border-gray-700 bg-gray-800">
+                    <form id="message-form" class="flex gap-2 sm:gap-3">
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            placeholder="Select a peer to send a message" 
+                            class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            autocomplete="off"
+                        >
+                        <button 
+                            type="submit" 
+                            class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-1 sm:gap-2 flex-shrink-0"
+                        >
+                            <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                            <span class="hidden sm:inline">Send</span>
+                            <svg class="hidden sm:block w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+// DOM Elements
+const messagesContainer = document.getElementById('messages');
+const messageForm = document.getElementById('message-form');
+const messageInput = document.getElementById('message-input');
+const peersList = document.getElementById('peers-list');
+const peerCount = document.getElementById('peer-count');
+const typingIndicator = document.getElementById('typing-indicator');
+const connectionStatus = document.getElementById('connection-status');
+const userId = document.getElementById('user-id');
+const copyIdBtn = document.getElementById('copy-id-btn');
+const connectForm = document.getElementById('connect-form');
+const peerIdInput = document.getElementById('peer-id-input');
+const chatHeader = document.getElementById('chat-header');
+
+// State
+let peer = null;
+let connections = new Map();
+let conversations = new Map();
+let selectedPeerId = null;
+let typingTimeout = null;
+
+// Initialize PeerJS
+function initPeer() {
+    peer = new Peer(null, {
+        debug: 2
+    });
+
+    peer.on('open', (id) => {
+        userId.textContent = id;
+        connectionStatus.textContent = 'Ready to connect';
+        connectionStatus.classList.remove('text-red-400');
+        connectionStatus.classList.add('text-green-400');
+        addSystemMessage('Your ID is ready. Share it with others to connect!');
+    });
+
+    peer.on('connection', (conn) => {
+        handleConnection(conn);
+    });
+
+    peer.on('error', (err) => {
+        console.error('Peer error:', err);
+        connectionStatus.textContent = 'Error: ' + err.type;
+        connectionStatus.classList.remove('text-green-400');
+        connectionStatus.classList.add('text-red-400');
+    });
+}
+
+// Handle incoming connection
+function handleConnection(conn) {
+    conn.on('open', () => {
+        connections.set(conn.peer, conn);
+        conversations.set(conn.peer, []);
+        updatePeersList();
+        addSystemMessage(`Peer ${conn.peer.substring(0, 8)}... connected!`, conn.peer);
+
+        // Auto-select if no peer is currently selected
+        if (!selectedPeerId) {
+            selectPeer(conn.peer);
+        }
+
+        conn.on('data', (data) => {
+            if (data.type === 'message') {
+                handleIncomingMessage(conn.peer, data);
+            } else if (data.type === 'typing') {
+                if (selectedPeerId === conn.peer) {
+                    showTypingIndicator(`Peer ${conn.peer.substring(0, 8)}`, data.isTyping);
+                }
+            }
+        });
+
+        conn.on('close', () => {
+            connections.delete(conn.peer);
+            updatePeersList();
+
+            if (selectedPeerId === conn.peer) {
+                selectedPeerId = null;
+                updateChatHeader();
+                messagesContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-6 sm:py-8">
+                        <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <p class="text-sm sm:text-base">Select a peer to start chatting</p>
+                    </div>
+                `;
+                messageInput.disabled = true;
+                messageInput.placeholder = 'Select a peer to send a message';
+            }
+
+            conversations.delete(conn.peer);
+        });
+    });
+
+    conn.on('error', (err) => {
+        console.error('Connection error:', err);
+    });
+}
+
+// Connect to a peer
+function connectToPeer(peerId) {
+    if (connections.has(peerId)) {
+        addSystemMessage('Already connected to this peer');
+        return;
+    }
+
+    const conn = peer.connect(peerId);
+    handleConnection(conn);
+}
+
+// Update peers list
+function updatePeersList() {
+    peerCount.textContent = connections.size;
+
+    if (connections.size === 0) {
+        peersList.innerHTML = '<p class="text-gray-500 text-xs sm:text-sm text-center py-4 px-2">No peers connected</p>';
+        return;
+    }
+
+    peersList.innerHTML = Array.from(connections.keys()).map(peerId => `
+        <div class="user-card p-2.5 sm:p-3 rounded-lg mb-1.5 sm:mb-2 bg-gray-750 cursor-pointer ${selectedPeerId === peerId ? 'ring-2 ring-blue-500 bg-gray-700' : ''}" data-peer-id="${peerId}">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="relative flex-shrink-0">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                        ${peerId.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-gray-800 online-pulse"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-sm sm:text-base truncate text-white">Peer ${peerId.substring(0, 8)}...</p>
+                    <p class="text-xs text-gray-400 font-mono truncate">${peerId}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Select a peer and show their conversation
+function selectPeer(peerId) {
+    selectedPeerId = peerId;
+    updatePeersList();
+    updateChatHeader();
+    renderMessages(peerId);
+    typingIndicator.innerHTML = '';
+    messageInput.disabled = false;
+    messageInput.placeholder = `Type a message to Peer ${peerId.substring(0, 8)}...`;
+    messageInput.focus();
+
+    // Close sidebar on mobile
+    if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+}
+
+// Update the chat header to show the selected peer
+function updateChatHeader() {
+    if (selectedPeerId && connections.has(selectedPeerId)) {
+        chatHeader.innerHTML = `
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm flex-shrink-0">
+                    ${selectedPeerId.charAt(0).toUpperCase()}
+                </div>
+                <div class="min-w-0">
+                    <p class="font-semibold text-sm sm:text-base truncate">Peer ${selectedPeerId.substring(0, 8)}...</p>
+                    <p class="text-xs text-gray-400 font-mono truncate">${selectedPeerId}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        chatHeader.innerHTML = `
+            <p class="text-gray-400">Select a peer to start chatting</p>
+        `;
+        messageInput.disabled = true;
+        messageInput.placeholder = 'Select a peer to send a message';
+    }
+}
+
+// Render all messages for a given peer
+function renderMessages(peerId) {
+    messagesContainer.innerHTML = '';
+    const msgs = conversations.get(peerId);
+
+    if (!msgs || msgs.length === 0) {
+        messagesContainer.innerHTML = `
+            <div class="text-center text-gray-500 py-6 sm:py-8">
+                <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <p class="text-sm sm:text-base">No messages yet</p>
+                <p class="text-xs sm:text-sm">Send a message to start the conversation</p>
+            </div>
+        `;
+        return;
+    }
+
+    msgs.forEach(msg => {
+        if (msg.type === 'system') {
+            renderSystemMessage(msg.text);
+        } else {
+            renderMessageElement(msg);
+        }
+    });
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Handle an incoming message from a remote peer
+function handleIncomingMessage(remotePeerId, data) {
+    if (!conversations.has(remotePeerId)) {
+        conversations.set(remotePeerId, []);
+    }
+    conversations.get(remotePeerId).push(data);
+
+    if (selectedPeerId === remotePeerId) {
+        renderMessageElement(data);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+// Render a single message bubble
+function renderMessageElement(data) {
+    const isOwnMessage = data.sender === peer.id;
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`;
+
+    const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const displayName = isOwnMessage ? 'You' : `Peer ${data.sender.substring(0, 8)}...`;
+
+    messageDiv.innerHTML = `
+        <div class="max-w-[85%] sm:max-w-md ${isOwnMessage ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-gray-700'} rounded-lg px-3 sm:px-4 py-2 sm:py-3">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-sm ${isOwnMessage ? 'text-white' : 'text-blue-400'}">${displayName}</span>
+                <span class="text-xs ${isOwnMessage ? 'text-blue-200' : 'text-gray-400'}">${time}</span>
+            </div>
+            <p class="text-white text-sm sm:text-base break-words">${escapeHtml(data.message)}</p>
+        </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+}
+
+// Add a system message (optionally scoped to a peer conversation)
+function addSystemMessage(text, peerId) {
+    if (peerId) {
+        if (!conversations.has(peerId)) {
+            conversations.set(peerId, []);
+        }
+        conversations.get(peerId).push({ type: 'system', text, timestamp: new Date().toISOString() });
+
+        if (selectedPeerId === peerId) {
+            renderSystemMessage(text);
+        }
+    } else {
+        renderSystemMessage(text);
+    }
+}
+
+function renderSystemMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message text-center';
+    messageDiv.innerHTML = `
+        <span class="bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm">${escapeHtml(text)}</span>
+    `;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Show typing indicator
+function showTypingIndicator(peerName, isTyping) {
+    if (isTyping) {
+        typingIndicator.innerHTML = `
+            <span class="typing-dots">
+                ${escapeHtml(peerName)} is typing<span>.</span><span>.</span><span>.</span>
+            </span>
+        `;
+    } else {
+        typingIndicator.innerHTML = '';
+    }
+}
+
+// Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Send data to a specific peer
+function sendToPeer(peerId, data) {
+    const conn = connections.get(peerId);
+    if (conn && conn.open) {
+        conn.send(data);
+    }
+}
+
+// Event listeners
+peersList.addEventListener('click', (e) => {
+    const card = e.target.closest('.user-card');
+    if (card) {
+        selectPeer(card.dataset.peerId);
+    }
+});
+
+connectForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const peerId = peerIdInput.value.trim();
+
+    if (peerId) {
+        connectToPeer(peerId);
+        peerIdInput.value = '';
+    }
+});
+
+messageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+
+    if (!selectedPeerId) {
+        addSystemMessage('Select a peer to send a message');
+        return;
+    }
+
+    if (!connections.has(selectedPeerId)) {
+        addSystemMessage('This peer is no longer connected');
+        return;
+    }
+
+    if (message) {
+        const data = {
+            type: 'message',
+            sender: peer.id,
+            message: message,
+            timestamp: new Date().toISOString()
+        };
+
+        sendToPeer(selectedPeerId, data);
+        addOutgoingMessage(selectedPeerId, data);
+        messageInput.value = '';
+
+        sendToPeer(selectedPeerId, { type: 'typing', isTyping: false });
+    }
+});
+
+function addOutgoingMessage(peerId, data) {
+    if (!conversations.has(peerId)) {
+        conversations.set(peerId, []);
+    }
+    conversations.get(peerId).push(data);
+
+    if (selectedPeerId === peerId) {
+        renderMessageElement(data);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+messageInput.addEventListener('input', () => {
+    if (selectedPeerId && connections.has(selectedPeerId)) {
+        sendToPeer(selectedPeerId, { type: 'typing', isTyping: true });
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+
+        typingTimeout = setTimeout(() => {
+            sendToPeer(selectedPeerId, { type: 'typing', isTyping: false });
+        }, 1000);
+    }
+});
+
+copyIdBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(userId.textContent).then(() => {
+        copyIdBtn.textContent = 'Copied!';
+        setTimeout(() => {
+            copyIdBtn.textContent = 'Copy ID';
+        }, 2000);
+    });
+});
+
+// Sidebar toggle
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isOpen = !sidebar.classList.contains('-translate-x-full');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+    document.body.classList.toggle('overflow-hidden');
+}
+
+document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+document.getElementById('sidebar-close').addEventListener('click', toggleSidebar);
+
+// Initialize on load
+initPeer();
+    </script>
+</body>
+</html>
