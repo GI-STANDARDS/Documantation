@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Daily Dispatch - Detective's Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lora:wght@400;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f5f1e8;
+            color: #1a1a1a;
+            font-family: 'Lora', serif;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* Masthead */
+        .masthead {
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            color: #f5f1e8;
+            padding: 2rem 2rem 1rem;
+            border-bottom: 8px solid #d4a574;
+            text-align: center;
+        }
+
+        .masthead h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.95rem;
+            letter-spacing: 0.2em;
+            color: #d4a574;
+            margin-top: 0.5rem;
+        }
+
+        .date-line {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 1rem;
+            border-top: 1px solid #444;
+            padding-top: 0.5rem;
+        }
+
+        /* Main wrapper */
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Newspaper content */
+        .newspaper {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .upload-section {
+            border: 3px dashed #d4a574;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            background: rgba(212, 165, 116, 0.05);
+        }
+
+        .upload-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #d4a574;
+            color: #1a1a1a;
+            border: 2px solid #d4a574;
+            padding: 0.8rem 2rem;
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .upload-btn:hover {
+            background: #c49563;
+            border-color: #c49563;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .file-name {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Article display */
+        .article {
+            border-left: 5px solid #d4a574;
+            padding-left: 1.5rem;
+            padding-right: 1rem;
+            margin-bottom: 2rem;
+            transition: background-color 0.2s;
+        }
+
+        .article:hover {
+            background-color: rgba(212, 165, 116, 0.1);
+        }
+
+        .article h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: #1a1a1a;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+
+        .byline {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 1rem;
+            font-family: 'Courier Prime', monospace;
+        }
+
+        .article p {
+            margin-bottom: 1rem;
+            text-align: justify;
+            color: #2a2a2a;
+            hyphens: auto;
+            user-select: text;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .highlight-animation {
+            animation: pulse-highlight 0.6s ease-in-out;
+        }
+
+        @keyframes pulse-highlight {
+            0% {
+                background-color: transparent;
+            }
+            50% {
+                background-color: #ffd700;
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .text-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .empty-article {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Right Sidebar - Detective's Collection */
+        .sidebar {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+
+        .collection-box {
+            background: #fff;
+            border: 4px solid #1a1a1a;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .collection-header {
+            background: #1a1a1a;
+            color: #f5f1e8;
+            padding: 1rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-align: center;
+            border-bottom: 3px solid #d4a574;
+        }
+
+        .search-box {
+            padding: 1rem;
+            border-bottom: 2px solid #e0d5c7;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #d4a574;
+            font-family: 'Lora', serif;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        }
+
+        .collection-content {
+            padding: 1rem;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .saved-item {
+            background: #f5f1e8;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            border-left: 4px solid #d4a574;
+            padding-left: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .saved-item:hover {
+            background-color: #ede5d3;
+            transform: translateX(4px);
+        }
+
+        .saved-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .saved-item-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            display: block;
+            margin-bottom: 0.3rem;
+            word-break: break-word;
+        }
+
+        .saved-item-text {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.3;
+            word-break: break-word;
+            max-height: 3em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .delete-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
+            font-weight: bold;
+            padding: 0;
+        }
+
+        .delete-btn:hover {
+            background: #b71c1c;
+        }
+
+        .empty-message {
+            font-size: 0.9rem;
+            color: #999;
+            text-align: center;
+            padding: 2rem 1rem;
+            font-style: italic;
+        }
+
+        .no-results {
+            font-size: 0.9rem;
+            color: #999;
+            text-align: center;
+            padding: 2rem 1rem;
+            font-style: italic;
+        }
+
+        /* Save Dialog */
+        .save-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+
+        .save-dialog.active {
+            display: flex;
+        }
+
+        .dialog-content {
+            background: #fff;
+            padding: 2rem;
+            border: 4px solid #1a1a1a;
+            box-shadow: 8px 8px 20px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .dialog-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .dialog-preview {
+            background: #f5f1e8;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #d4a574;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+            max-height: 100px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .dialog-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .dialog-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+            font-size: 0.95rem;
+        }
+
+        .dialog-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #d4a574;
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .dialog-input:focus {
+            outline: none;
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        }
+
+        .dialog-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .dialog-btn {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #1a1a1a;
+            background: #f5f1e8;
+            color: #1a1a1a;
+            cursor: pointer;
+            font-family: 'Lora', serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .dialog-btn:hover {
+            background: #1a1a1a;
+            color: #f5f1e8;
+        }
+
+        .dialog-btn.save {
+            background: #d4a574;
+            border-color: #d4a574;
+            color: #1a1a1a;
+        }
+
+        .dialog-btn.save:hover {
+            background: #c49563;
+            border-color: #c49563;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c2c2c;
+            color: #999;
+            text-align: center;
+            padding: 2rem;
+            border-top: 3px solid #d4a574;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .wrapper {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .sidebar {
+                position: static;
+                max-width: 400px;
+            }
+
+            .masthead h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        .collection-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .collection-content::-webkit-scrollbar-track {
+            background: #f5f1e8;
+        }
+
+        .collection-content::-webkit-scrollbar-thumb {
+            background: #d4a574;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Masthead -->
+    <div class="masthead">
+        <h1>THE DAILY DISPATCH</h1>
+        <div class="tagline">★ INSPECTOR BLACKWELL'S INVESTIGATIVE GAZETTE ★</div>
+        <div class="date-line">Friday, May 22, 2026 | Edition 2847</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="wrapper">
+        <!-- Newspaper Articles -->
+        <div class="newspaper">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h3>Upload Case File</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".txt" />
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose Text File</button>
+                </div>
+                <div class="file-name" id="fileName"></div>
+            </div>
+
+            <!-- Article Display -->
+            <article class="article" id="articleContainer">
+                <div class="empty-article">Upload a text file to display case details here</div>
+            </article>
+        </div>
+
+        <!-- Detective's Collection Sidebar -->
+        <div class="sidebar">
+            <div class="collection-box">
+                <div class="collection-header">DETECTIVE'S FILES</div>
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search files...">
+                </div>
+                <div class="collection-content" id="collection">
+                    <div class="empty-message">Select text and right-click to save</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Dialog -->
+    <div class="save-dialog" id="saveDialog">
+        <div class="dialog-content">
+            <div class="dialog-title">Save Selected Text</div>
+            <div class="dialog-preview" id="dialogPreview"></div>
+            <div class="dialog-input-group">
+                <label class="dialog-label">File Name</label>
+                <input type="text" class="dialog-input" id="fileNameInput" placeholder="Enter a name for this text...">
+            </div>
+            <div class="dialog-buttons">
+                <button class="dialog-btn" id="cancelBtn">Cancel</button>
+                <button class="dialog-btn save" id="saveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© 2026 The Daily Dispatch | Investigation & Inquiry Since 1890</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Inspector Blackwell's Crime Chronicles | Upload case files and save important details to Detective's Files</p>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const articleContainer = document.getElementById('articleContainer');
+        const saveDialog = document.getElementById('saveDialog');
+        const dialogPreview = document.getElementById('dialogPreview');
+        const fileNameInput = document.getElementById('fileNameInput');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const collectionDiv = document.getElementById('collection');
+        const searchInput = document.getElementById('searchInput');
+
+        let selectedText = '';
+        let savedItems = JSON.parse(localStorage.getItem('savedTextItems')) || [];
+        let currentArticleText = '';
+
+        // Load saved items on page load
+        function loadSavedItems() {
+            if (savedItems.length === 0) {
+                collectionDiv.innerHTML = '<div class="empty-message">Select text and right-click to save</div>';
+            } else {
+                renderSavedItems(savedItems);
+            }
+        }
+
+        // File upload handler
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Extract title from filename (remove .txt extension)
+            const title = file.name.replace(/\.txt$/i, '');
+            
+            // Read file content
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+                currentArticleText = content;
+                
+                // Display article
+                articleContainer.innerHTML = `
+                    <h3>${escapeHtml(title)}</h3>
+                    <div class="byline">Case File: ${escapeHtml(file.name)}</div>
+                    <p>${escapeHtml(content)}</p>
+                `;
+                
+                // Show filename
+                fileNameDisplay.textContent = `Loaded: ${file.name}`;
+                
+                // Reattach context menu listener
+                attachContextMenuListener();
+            };
+            reader.readAsText(file);
+        });
+
+        // Attach context menu listener to article
+        function attachContextMenuListener() {
+            articleContainer.addEventListener('contextmenu', handleContextMenu);
+        }
+
+        // Handle right-click context menu
+        function handleContextMenu(e) {
+            const selection = window.getSelection().toString().trim();
+            
+            if (selection.length > 0) {
+                e.preventDefault();
+                selectedText = selection;
+                dialogPreview.textContent = selectedText;
+                fileNameInput.value = '';
+                fileNameInput.focus();
+                saveDialog.classList.add('active');
+            }
+        }
+
+        // Search filter
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query === '') {
+                renderSavedItems(savedItems);
+            } else {
+                const filteredItems = savedItems.filter(item => 
+                    item.title.toLowerCase().includes(query) || 
+                    item.text.toLowerCase().includes(query)
+                );
+                renderSavedItems(filteredItems);
+            }
+        });
+
+        // Render saved items
+        function renderSavedItems(items) {
+            collectionDiv.innerHTML = '';
+            
+            if (items.length === 0) {
+                collectionDiv.innerHTML = '<div class="no-results">No files found</div>';
+            } else {
+                items.forEach((item) => {
+                    const actualIndex = savedItems.indexOf(item);
+                    const div = document.createElement('div');
+                    div.className = 'saved-item';
+                    div.innerHTML = `
+                        <div class="saved-item-content">
+                            <span class="saved-item-title">${escapeHtml(item.title)}</span>
+                            <span class="saved-item-text">${escapeHtml(item.text)}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteSavedItem(${actualIndex})">−</button>
+                    `;
+                    div.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('delete-btn')) {
+                            highlightInArticle(item.text);
+                        }
+                    });
+                    collectionDiv.appendChild(div);
+                });
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Highlight text in article
+        function highlightInArticle(text) {
+            // Remove previous highlights
+            document.querySelectorAll('.text-highlight').forEach(el => {
+                const parent = el.parentNode;
+                while (el.firstChild) {
+                    parent.insertBefore(el.firstChild, el);
+                }
+                parent.removeChild(el);
+            });
+
+            // Find and highlight the text
+            const paragraphs = articleContainer.querySelectorAll('p');
+            let found = false;
+
+            paragraphs.forEach(para => {
+                const content = para.textContent;
+                if (content.includes(text)) {
+                    found = true;
+                    
+                    // Create highlighted span
+                    const regex = new RegExp(`(${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'g');
+                    para.innerHTML = para.textContent.replace(regex, '<span class="text-highlight">$1</span>');
+                    
+                    // Add animation to the highlighted span only
+                    const highlightedSpan = para.querySelector('.text-highlight');
+                    if (highlightedSpan) {
+                        highlightedSpan.classList.add('highlight-animation');
+                        
+                        // Scroll into view
+                        highlightedSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        setTimeout(() => {
+                            highlightedSpan.classList.remove('highlight-animation');
+                        }, 600);
+                    }
+                }
+            });
+        }
+
+        // Delete saved item
+        function deleteSavedItem(index) {
+            savedItems.splice(index, 1);
+            localStorage.setItem('savedTextItems', JSON.stringify(savedItems));
+            
+            // Re-render based on current search
+            const query = searchInput.value.toLowerCase().trim();
+            if (query === '') {
+                loadSavedItems();
+            } else {
+                const filteredItems = savedItems.filter(item => 
+                    item.title.toLowerCase().includes(query) || 
+                    item.text.toLowerCase().includes(query)
+                );
+                renderSavedItems(filteredItems);
+            }
+        }
+
+        // Cancel dialog
+        cancelBtn.addEventListener('click', () => {
+            saveDialog.classList.remove('active');
+            selectedText = '';
+        });
+
+        // Save to file
+        saveBtn.addEventListener('click', () => {
+            const fileName = fileNameInput.value.trim();
+            
+            if (!fileName) {
+                alert('Please enter a file name');
+                return;
+            }
+
+            // Add to saved items
+            savedItems.push({
+                title: fileName,
+                text: selectedText,
+                timestamp: new Date().toISOString()
+            });
+
+            localStorage.setItem('savedTextItems', JSON.stringify(savedItems));
+            
+            // Reset search and render
+            searchInput.value = '';
+            renderSavedItems(savedItems);
+            
+            saveDialog.classList.remove('active');
+            selectedText = '';
+        });
+
+        // Close dialog on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && saveDialog.classList.contains('active')) {
+                saveDialog.classList.remove('active');
+                selectedText = '';
+            }
+        });
+
+        // Load items on page load
+        loadSavedItems();
+    </script>
+</body>
+</html>

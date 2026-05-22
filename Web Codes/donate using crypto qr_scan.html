@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* WhatsApp Header Banner Styles */
+        .header-banner {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-banner-content {
+            flex: 1;
+        }
+
+        .header-banner-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #111;
+            margin-bottom: 0.75rem;
+        }
+
+        .header-banner-desc {
+            font-size: 0.9rem;
+            color: #65676b;
+            line-height: 1.5;
+        }
+
+        .header-banner-btn {
+            flex-shrink: 0;
+            background: #25d366;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .header-banner-btn:hover {
+            background: #20ba5a;
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 768px) {
+            .header-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .header-banner-desc {
+                font-size: 0.8rem;
+            }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            color: #111;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .hero p {
+            color: #65676b;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: center;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .card-left {
+            flex: 1;
+        }
+
+        .card-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            color: #111;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .card-desc {
+            color: #65676b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .card-steps li {
+            counter-increment: step-counter;
+            margin-bottom: 0.75rem;
+            color: #111;
+            font-size: 0.9rem;
+            padding-left: 1.75rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .card-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #65676b;
+        }
+
+        #qrcode {
+            width: 220px;
+            height: 220px;
+            padding: 1rem;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrcode canvas {
+            display: block;
+        }
+
+        .address-display {
+            width: 220px;
+            padding: 0.75rem;
+            background: #f0f2f5;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.75rem;
+            color: #111;
+            word-break: break-all;
+            text-align: center;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: 220px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 24px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #25d366;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #20ba5a;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #111;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            border-color: #ccc;
+            background: #f9fafb;
+        }
+
+        .btn-secondary.copied {
+            background: #e7f5ea;
+            border-color: #25d366;
+            color: #25d366;
+        }
+
+        .info-section {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-section h2 {
+            font-size: 1.2rem;
+            color: #111;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-item {
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-item:nth-child(odd):nth-last-child(-n+2),
+        .info-item:nth-child(even):nth-last-child(-n+2) {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-item h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #111;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item p {
+            font-size: 0.9rem;
+            color: #65676b;
+            line-height: 1.5;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #65676b;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-left">
+                <h2>Donate with Monero (XMR)</h2>
+                <p class="card-desc">Secure peer-to-peer donations.</p>
+                <ol class="card-steps">
+                    <li>Open your crypto wallet app on your phone</li>
+                    <li>Make sure you have some cryptocurrency available</li>
+                    <li>Point your phone camera at this QR code</li>
+                    <li>Or manually scan with your wallet app's QR scanner</li>
+                    <li>The wallet will recognize the address and pre-fill the details</li>
+                    <li>Review the wallet address carefully before proceeding</li>
+                    <li>Enter the amount you wish to donate</li>
+                    <li>Check the transaction fee (usually minimal for crypto)</li>
+                    <li>Confirm the transaction in your wallet</li>
+                    <li>Your donation is sent instantly to our wallet</li>
+                </ol>
+            </div>
+            <div class="card-right">
+                <div id="qrcode"></div>
+                <div class="address-display" id="addressDisplay"></div>
+                <div class="button-group">
+                    <button class="btn btn-primary" id="copyBtn" onclick="copyAddress()">
+                        <i class="ti ti-copy"></i> Copy address
+                    </button>
+                    <button class="btn btn-secondary" id="downloadBtn" onclick="downloadQR()">
+                        <i class="ti ti-download"></i> Download QR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WhatsApp Header Banner -->
+        <div class="header-banner">
+            <div class="header-banner-content">
+                <div class="header-banner-title">Community forum by Project-Bhv</div>
+                <div class="header-banner-desc">The place where everyone allowed even anonymous</div>
+            </div>
+<a href="https://community.project-bhv.com/public/" target="_blank" rel="noopener noreferrer" class="header-banner-btn">
+  Visit Community Forum
+</a>
+        </div>
+
+        <div class="info-section">
+            <h2>Frequently asked</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h3>Is it secure?</h3>
+                    <p>Yes, because your record was never created.</p>
+                </div>
+                <div class="info-item">
+                    <h3>Can I donate anonymously?</h3>
+                    <p>Bitcoin & Monero transaction are pseudonymous by default. But always double-check your exchange documantation.</p>
+                </div>
+                <div class="info-item">
+                    <h3>What if I made a mistake?</h3>
+                    <p>Always double-check the address before sending.</p>
+                </div>
+                <div class="info-item">
+                    <h3>Which cryptocurrencies?</h3>
+                    <p>We accept in Bitcoin & Monero (XMR) only.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            Your donation directly supports our mission.
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_ADDRESS = '867LxzaLr1KS9SCeyQJAbULhdB6bN6DdYYB4xvjM2NFHfa9rGR1uuQGVZhtFwj3PD2EXReTiyoo87FMydmPzu8xMBQzSuUJ';
+
+        function generateQR() {
+            const address = DEFAULT_ADDRESS;
+            const qrContainer = document.getElementById('qrcode');
+            const addressDisplay = document.getElementById('addressDisplay');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            qrContainer.innerHTML = '';
+            
+            new QRCode(qrContainer, {
+                text: address,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            addressDisplay.textContent = address;
+            addressDisplay.style.display = 'block';
+            copyBtn.style.display = 'flex';
+            downloadBtn.style.display = 'flex';
+        }
+
+        function copyAddress() {
+            const address = DEFAULT_ADDRESS;
+            navigator.clipboard.writeText(address).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const original = btn.innerHTML;
+                btn.textContent = '✓ Copied';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `donate-qr-${Date.now()}.png`;
+            link.click();
+        }
+
+        window.addEventListener('load', generateQR);
+    </script>
+</body>
+</html>
